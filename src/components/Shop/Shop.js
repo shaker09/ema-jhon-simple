@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Cart from '../Cart/Cart';
 import Product from '../Product/Product';
+import {addToDb, getStoredCart} from '../../utilities/fakedb';
 import './Shop.css'
 
 const Shop = () => {
@@ -9,14 +10,38 @@ const Shop = () => {
     const [cart, setCart] = useState([]);
 
     useEffect( () =>{
+        // console.log("product ApI called");
         fetch('./products.JSON')
         .then(res => res.json())
-        .then(data => setProducts(data));
-    },[])
+        .then(data => {
+            setProducts(data)
+            // console.log('Products received');
+        });
+    },[]);
+
+    useEffect( ()=> {
+        // console.log('LocalStorage cart Called');
+        if(products.length){
+            const savedCart = getStoredCart();
+            const storedCart = [];
+        for (const key in savedCart){
+            const addedProduct = products.find( product => product.key === key);
+            // console.log(key, addedProduct);
+            if(addedProduct){
+                const quantity = savedCart[key];
+                addedProduct.quantity = quantity;
+                storedCart.push(addedProduct);
+            }
+        }
+        setCart(storedCart);
+    }
+    },[products])
 
     const handleAddToCart = (product) => {
         const newcart = [...cart,product];
-        setCart(newcart); 
+        setCart(newcart);
+        // save to local storage 
+        addToDb(product.key);
     }
 
     return (
